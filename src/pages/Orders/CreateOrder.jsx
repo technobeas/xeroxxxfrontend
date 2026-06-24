@@ -18,6 +18,21 @@ export default function CreateOrder() {
   const [walletUse, setWalletUse] = useState(0);
   const [useMaxWallet, setUseMaxWallet] = useState(false);
   const [showSignModal, setShowSignModal] = useState(false);
+
+  // const formatINR = (amount) =>
+  //   new Intl.NumberFormat("en-IN", {
+  //     style: "currency",
+  //     currency: "INR",
+  //     minimumFractionDigits: 2,
+  //   }).format(amount);
+
+  const formatINR = (amount = 0) =>
+    new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 2,
+      minimumFractionDigits: 2,
+    }).format(Number(amount) || 0);
   /* =====================
      Products
   ===================== */
@@ -54,6 +69,7 @@ export default function CreateOrder() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const [showCancelModal, setShowCancelModal] = useState(false);
+
   /* =====================
      Initial Fetch
   ===================== */
@@ -319,6 +335,8 @@ export default function CreateOrder() {
   const extraChargesPaise = adjustmentPaise > 0 ? adjustmentPaise : 0;
   const discountPaise = adjustmentPaise < 0 ? Math.abs(adjustmentPaise) : 0;
 
+  const totalModified = grandTotalPaise !== calculatedTotalPaise;
+
   const resetForm = () => {
     // Customer
     setSelectedCustomer(null);
@@ -522,7 +540,7 @@ export default function CreateOrder() {
         <div className={styles.walletTop}>
           <div>
             <p className={styles.walletLabel}>Customer Wallet</p>
-            <h3 className={styles.walletBalance}>₹{walletBalance}</h3>
+            <h3 className={styles.walletBalance}>{formatINR(walletBalance)}</h3>
           </div>
 
           {walletBalance > 0 && (
@@ -577,19 +595,19 @@ export default function CreateOrder() {
         <div className={styles.walletSummary}>
           <div>
             <span>Using</span>
-            <strong>₹{walletUse}</strong>
+            <strong>{formatINR(walletUse)}</strong>
           </div>
 
           <div>
             <span>Remaining</span>
             <strong style={{ color: "#16a34a" }}>
-              ₹{remainingWallet.toFixed(2)}
+              {formatINR(remainingWallet)}
             </strong>
           </div>
 
           <div>
             <span>Payable</span>
-            <strong>₹{(grandTotalPaise / 100 - walletUse).toFixed(2)}</strong>
+            <strong>{formatINR(grandTotalPaise / 100 - walletUse)}</strong>
           </div>
         </div>
       </div>
@@ -639,7 +657,8 @@ export default function CreateOrder() {
               setFilteredProducts([]);
             }}
           >
-            {p.name} — ₹{p.price} • Stock: {p.trackStock ? p.stock : "∞"}
+            {p.name} — {formatINR(p.price)} • Stock:{" "}
+            {p.trackStock ? p.stock : "∞"}
           </div>
         ))}
       </div>
@@ -657,7 +676,7 @@ export default function CreateOrder() {
               <span className={styles.posName}>{item.name}</span>
 
               <span className={styles.posTotal}>
-                ₹{(item.qty * item.price).toFixed(2)}
+                {formatINR(item.qty * item.price)}
               </span>
             </div>
 
@@ -733,7 +752,7 @@ export default function CreateOrder() {
       <div className={styles.summary}>
         <div className={styles.summaryRow}>
           <span>Subtotal</span>
-          <span>₹{toRupees(subtotalPaise)}</span>
+          <span>{formatINR(subtotalPaise / 100)}</span>
         </div>
 
         <div className={styles.summaryRow}>
@@ -750,22 +769,22 @@ export default function CreateOrder() {
 
         <div className={styles.summaryRow}>
           <span>GST</span>
-          <span>₹{toRupees(calculatedTotalPaise - subtotalPaise)}</span>
+          <span>{formatINR((calculatedTotalPaise - subtotalPaise) / 100)}</span>
         </div>
 
         {discountPaise > 0 && (
           <div className={styles.summaryRow} style={{ color: "green" }}>
-            Discount −₹{toRupees(discountPaise)}
+            Discount − {formatINR(discountPaise / 100)}
           </div>
         )}
 
         {extraChargesPaise > 0 && (
           <div className={styles.summaryRow} style={{ color: "red" }}>
-            Extra Charges +₹{toRupees(extraChargesPaise)}
+            Extra Charges + {formatINR(extraChargesPaise / 100)}
           </div>
         )}
 
-        <div className={styles.summaryRow}>
+        {/* <div className={styles.summaryRow}>
           <span>Grand Total</span>
           <input
             type="number"
@@ -777,30 +796,81 @@ export default function CreateOrder() {
               setGrandTotalPaise(toPaise(Number(e.target.value)));
             }}
           />
+        </div> */}
+
+        <div className={styles.summaryRow}>
+          <span>Grand Total</span>
+
+          <div className={styles.totalInputWrapper}>
+            <input
+              type="number"
+              step="0.01"
+              value={grandTotalInput}
+              onChange={(e) => {
+                setManualTotal(true);
+                setGrandTotalInput(e.target.value);
+                setGrandTotalPaise(toPaise(Number(e.target.value)));
+              }}
+            />
+
+            {totalModified && (
+              <button
+                type="button"
+                className={styles.resetTotalBtn}
+                onClick={() => {
+                  setManualTotal(false);
+                  setGrandTotalPaise(calculatedTotalPaise);
+                  setGrandTotalInput(toRupees(calculatedTotalPaise));
+                }}
+              >
+                ↺
+              </button>
+            )}
+          </div>
         </div>
 
         {walletUse > 0 && (
           <>
             <div className={styles.summaryRow}>
               <span>Wallet Used</span>
-              <span style={{ color: "#4f46e5" }}>
-                − ₹{walletUse.toFixed(2)}
-              </span>
+              <span style={{ color: "#4f46e5" }}>− {formatINR(walletUse)}</span>
             </div>
 
             <div className={styles.summaryRow}>
               <span>Wallet Remaining</span>
               <span style={{ color: "#16a34a" }}>
-                ₹{(walletBalance - walletUse).toFixed(2)}
+                {formatINR(walletBalance - walletUse)}
               </span>
             </div>
           </>
         )}
 
         <div className={styles.summaryRow}>
-          <span>Payable After Wallet</span>
-          <span>₹{(grandTotalPaise / 100 - walletUse).toFixed(2)}</span>
+          <span className={styles.summaryStrong}>
+            {walletUse > 0 ? "Payable After Wallet" : "Payable"}
+          </span>
+
+          <span className={styles.summaryStrong}>
+            {formatINR(grandTotalPaise / 100 - walletUse)}
+          </span>
         </div>
+
+        {/* <div className={styles.summaryRow}>
+          <span className={styles.summaryStrong}>Payable After Wallet</span>
+          <span className={styles.summaryStrong}>
+            ₹{(grandTotalPaise / 100 - walletUse).toFixed(2)}
+          </span>
+        </div> */}
+
+        {/* <div className={styles.summaryRow}>
+          <span className={styles.summaryStrong}>Final Total</span>
+          {/* <span className={styles.summaryStrong}>
+            ₹{toRupees(grandTotalPaise)}
+          </span> */}
+        {/* <span className={styles.summaryStrong}>
+            ₹{(grandTotalPaise / 100 - walletUse).toFixed(2)}
+          </span>
+        </div> */}
 
         <div className={styles.summaryRow}>
           <span>Full Paid</span>
@@ -843,7 +913,7 @@ export default function CreateOrder() {
             }}
           >
             <span>Balance</span>
-            <span>₹{balanceAmount.toFixed(2)}</span>
+            <span>{formatINR(balanceAmount)}</span>
           </div>
         )}
 
@@ -859,7 +929,7 @@ export default function CreateOrder() {
             }}
           >
             <span>Advance</span>
-            <span>₹{advanceAmount.toFixed(2)}</span>
+            <span>{formatINR(advanceAmount)}</span>
           </div>
         )}
 
@@ -875,16 +945,6 @@ export default function CreateOrder() {
             </span>
           </div>
         )} */}
-
-        <div className={styles.summaryRow}>
-          <span className={styles.summaryStrong}>Final Total</span>
-          {/* <span className={styles.summaryStrong}>
-            ₹{toRupees(grandTotalPaise)}
-          </span> */}
-          <span className={styles.summaryStrong}>
-            ₹{(grandTotalPaise / 100 - walletUse).toFixed(2)}
-          </span>
-        </div>
 
         <div className={styles.signatureBox}>
           <div className={styles.signatureHeader}>
@@ -924,7 +984,7 @@ export default function CreateOrder() {
             className={styles.cancelBtn}
             onClick={() => setShowCancelModal(true)}
           >
-            Cancel Order
+            Cancel
           </button>
 
           <button
@@ -932,7 +992,7 @@ export default function CreateOrder() {
             onClick={submitOrder}
             disabled={loading}
           >
-            {loading ? "Creating..." : "Create Order"}
+            {loading ? "Creating..." : "Order"}
           </button>
         </div>
       </div>
