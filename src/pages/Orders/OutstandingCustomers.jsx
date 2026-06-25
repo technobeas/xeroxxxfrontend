@@ -566,7 +566,7 @@ window.onload = function() {
           ? `
       <div class="signature-box">
         <img src="${order.signature}" />
-        <p>Authorized Signature</p>
+        <p>Receiver's Signature</p>
       </div>
     `
           : ""
