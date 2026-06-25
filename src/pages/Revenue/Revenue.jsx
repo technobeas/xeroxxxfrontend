@@ -105,7 +105,14 @@ const Revenue = () => {
       // 🔹 Format data for Excel
       const formattedData = records.map((item) => ({
         Date: new Date(item.createdAt).toLocaleDateString(),
-        Source: item.source,
+
+        Customer:
+          item.source === "quickSale"
+            ? "Unknown"
+            : item.order?.customerName || "Unknown",
+
+        Source: item.source === "quickSale" ? "Quick Sale" : "Order",
+
         Amount: item.amount,
       }));
 
