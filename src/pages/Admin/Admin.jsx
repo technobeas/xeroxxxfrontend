@@ -1,10 +1,10 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { authFetch } from "../../utils/authFetch";
 import { BACKEND_URL } from "../../config";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import notificationSound from "../../assets/notification.mp3";
+// import notificationSound from "../../assets/notification.mp3";
 import { socket } from "../../socket";
 
 import {
@@ -32,7 +32,7 @@ export default function Admin() {
   });
 
   const navigate = useNavigate();
-  const audioRef = useRef(null);
+  // const audioRef = useRef(null);
 
   const [loading, setLoading] = useState(true);
 
@@ -58,29 +58,29 @@ export default function Admin() {
   /* ===============================
      AUDIO UNLOCK
   ============================== */
-  useEffect(() => {
-    const unlockAudio = () => {
-      if (audioRef.current) {
-        audioRef.current
-          .play()
-          .then(() => {
-            audioRef.current.pause();
-            audioRef.current.currentTime = 0;
-          })
-          .catch(() => {});
-      }
-      window.removeEventListener("click", unlockAudio);
-    };
+  // useEffect(() => {
+  //   const unlockAudio = () => {
+  //     if (audioRef.current) {
+  //       audioRef.current
+  //         .play()
+  //         .then(() => {
+  //           audioRef.current.pause();
+  //           audioRef.current.currentTime = 0;
+  //         })
+  //         .catch(() => {});
+  //     }
+  //     window.removeEventListener("click", unlockAudio);
+  //   };
 
-    window.addEventListener("click", unlockAudio);
-    return () => window.removeEventListener("click", unlockAudio);
-  }, []);
+  //   window.addEventListener("click", unlockAudio);
+  //   return () => window.removeEventListener("click", unlockAudio);
+  // }, []);
 
-  const playSound = () => {
-    if (!audioRef.current) return;
-    audioRef.current.currentTime = 0;
-    audioRef.current.play().catch(() => {});
-  };
+  // const playSound = () => {
+  //   if (!audioRef.current) return;
+  //   audioRef.current.currentTime = 0;
+  //   audioRef.current.play().catch(() => {});
+  // };
 
   /* ===============================
      CALCULATE TOTAL
@@ -148,7 +148,7 @@ export default function Admin() {
   ============================== */
   useEffect(() => {
     socket.on("new-order", (order) => {
-      playSound();
+      // playSound();
 
       const existing = JSON.parse(localStorage.getItem("newOrders") || "[]");
       localStorage.setItem(
@@ -667,7 +667,7 @@ export default function Admin() {
         </div>
       )}
 
-      <audio ref={audioRef} src={notificationSound} preload="auto" />
+      {/* <audio ref={audioRef} src={notificationSound} preload="auto" /> */}
 
       <ToastContainer
         position="bottom-right"
