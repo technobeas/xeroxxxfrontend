@@ -464,7 +464,7 @@ ${
       <div class="signature-inner">
         <img src="${order.signature}" />
         <div class="signature-line"></div>
-        <div class="signature-label">Authorized Signature</div>
+        <div class="signature-label">Receiver's Signature</div>
       </div>
     </div>
   `
