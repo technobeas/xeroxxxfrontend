@@ -15,8 +15,8 @@ import { BACKEND_URL } from "../../config";
 import styles from "./AdminDashboard.module.css";
 import { FiLogOut } from "react-icons/fi";
 
-import { useRef } from "react";
-import notificationSound from "../../assets/notification.mp3";
+// import { useRef } from "react";
+// import notificationSound from "../../assets/notification.mp3";
 
 import { socket } from "../../socket";
 
@@ -32,7 +32,7 @@ const AdminDashboard = () => {
 
   const [liveOrderCount, setLiveOrderCount] = useState(0);
 
-  const audioRef = useRef(null);
+  // const audioRef = useRef(null);
 
   const cards = [
     { title: "Walk-In Customer", path: "/walk", icon: <FiUserPlus /> },
@@ -47,25 +47,25 @@ const AdminDashboard = () => {
     { title: "Create User", path: "/register", icon: <FiUserPlus /> },
   ];
 
-  useEffect(() => {
-    const unlock = () => {
-      if (!audioRef.current) return;
+  // useEffect(() => {
+  //   const unlock = () => {
+  //     if (!audioRef.current) return;
 
-      audioRef.current
-        .play()
-        .then(() => {
-          audioRef.current.pause();
-          audioRef.current.currentTime = 0;
-        })
-        .catch(() => {});
+  //     audioRef.current
+  //       .play()
+  //       .then(() => {
+  //         audioRef.current.pause();
+  //         audioRef.current.currentTime = 0;
+  //       })
+  //       .catch(() => {});
 
-      window.removeEventListener("click", unlock);
-    };
+  //     window.removeEventListener("click", unlock);
+  //   };
 
-    window.addEventListener("click", unlock);
+  //   window.addEventListener("click", unlock);
 
-    return () => window.removeEventListener("click", unlock);
-  }, []);
+  //   return () => window.removeEventListener("click", unlock);
+  // }, []);
 
   const fetchCount = async () => {
     try {
@@ -94,19 +94,19 @@ const AdminDashboard = () => {
 
       fetchCount();
 
-      if (audioRef.current) {
-        const sound = audioRef.current;
-        sound.pause();
-        sound.currentTime = 0;
+      // if (audioRef.current) {
+      //   const sound = audioRef.current;
+      //   sound.pause();
+      //   sound.currentTime = 0;
 
-        const playPromise = sound.play();
+      //   const playPromise = sound.play();
 
-        if (playPromise !== undefined) {
-          playPromise.catch(() => {
-            console.log("Sound blocked");
-          });
-        }
-      }
+      //   if (playPromise !== undefined) {
+      //     playPromise.catch(() => {
+      //       console.log("Sound blocked");
+      //     });
+      //   }
+      // }
     };
 
     const handleOrderDeleted = () => {
@@ -188,12 +188,12 @@ const AdminDashboard = () => {
           </div>
         ))}
       </div>
-      <audio
+      {/* <audio
         ref={audioRef}
         src={notificationSound}
         preload="auto"
         playsInline
-      />
+      /> */}
     </div>
   );
 };
