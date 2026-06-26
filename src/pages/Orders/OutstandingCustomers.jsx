@@ -99,10 +99,10 @@ function BulkPaymentModal({ customerId, totalBalance, onClose, onSuccess }) {
       return;
     }
 
-    if (payAmount > totalBalance) {
-      toast.error("Amount cannot exceed outstanding balance");
-      return;
-    }
+    // if (payAmount > totalBalance) {
+    //   toast.error("Amount cannot exceed outstanding balance");
+    //   return;
+    // }
 
     try {
       setLoading(true);
@@ -118,7 +118,14 @@ function BulkPaymentModal({ customerId, totalBalance, onClose, onSuccess }) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
 
-      toast.success("Bulk payment successful");
+      // toast.success("Bulk payment successful");
+      if (data.walletAdded > 0) {
+        toast.success(
+          `Bulk payment successful. ₹${data.walletAdded} added to customer's wallet.`,
+        );
+      } else {
+        toast.success("Bulk payment successful");
+      }
       onSuccess();
       onClose();
     } catch (err) {
@@ -140,7 +147,7 @@ function BulkPaymentModal({ customerId, totalBalance, onClose, onSuccess }) {
           placeholder="Enter amount"
           value={amount}
           min="1"
-          max={totalBalance}
+          // max={totalBalance}
           disabled={loading}
           onChange={(e) => setAmount(e.target.value)}
         />
