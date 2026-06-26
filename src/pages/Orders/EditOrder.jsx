@@ -348,6 +348,10 @@ export default function EditOrder() {
             </p>
           )}
 
+          {order.walletUsed > 0 && (
+            <p>*Wallet Amount: ₹{order.walletUsed.toFixed(2)}</p>
+          )}
+
           <label>
             Paid Amount
             <input
@@ -384,6 +388,18 @@ export default function EditOrder() {
               }}
             />
           </label>
+
+          <span
+            style={{
+              color: "#d32f2f",
+              marginTop: "10px",
+              display: "block",
+              fontSize: "13px",
+              fontWeight: 500,
+            }}
+          >
+            Wallet Credit (If Needed)
+          </span>
         </div>
 
         <button
