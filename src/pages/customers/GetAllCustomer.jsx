@@ -19,7 +19,7 @@ const CustomerCard = memo(
     onCancel,
     onDelete,
     onSubmit,
-    handleAddMoney,
+    handleWallet,
     walletLoading,
   }) => {
     return (
@@ -81,14 +81,22 @@ const CustomerCard = memo(
             </div>
 
             <div className={styles.walletSection}>
-              <span className={styles.wallet}>₹ {customer.walletBalance}</span>
+              <span className={styles.wallet}>
+                ₹ {Number(customer.walletBalance || 0).toFixed(2)}
+              </span>
 
               <button
                 className={styles.btnWallet}
-                onClick={() => handleAddMoney(customer.id)}
-                disabled={walletLoading}
+                onClick={() => handleWallet(customer, "credit")}
               >
                 + Add Money
+              </button>
+
+              <button
+                className={styles.btnReturn}
+                onClick={() => handleWallet(customer, "debit")}
+              >
+                Return Money
               </button>
             </div>
 
@@ -141,7 +149,7 @@ const ConfirmModal = ({ open, onCancel, onConfirm, deleting }) => {
   );
 };
 
-const WalletModal = ({ open, onClose, onSubmit, loading }) => {
+const WalletModal = ({ open, onClose, onSubmit, loading, walletAction }) => {
   const [amount, setAmount] = useState("");
 
   useEffect(() => {
@@ -151,7 +159,7 @@ const WalletModal = ({ open, onClose, onSubmit, loading }) => {
   if (!open) return null; // ✅ AFTER hooks
 
   const handleSubmit = () => {
-    const num = Number(amount);
+    const num = Number(parseFloat(amount).toFixed(2));
 
     if (isNaN(num) || num <= 0) {
       toast.error("Enter valid amount > 0");
@@ -165,7 +173,11 @@ const WalletModal = ({ open, onClose, onSubmit, loading }) => {
   return (
     <div className={styles.confirmOverlay}>
       <div className={styles.confirmModal}>
-        <h3>Add Wallet Money</h3>
+        <h3>
+          {walletAction === "credit"
+            ? "Add Wallet Money"
+            : "Return Wallet Money"}
+        </h3>
 
         <input
           type="number"
@@ -180,7 +192,13 @@ const WalletModal = ({ open, onClose, onSubmit, loading }) => {
           </button>
 
           <button onClick={handleSubmit} disabled={loading}>
-            {loading ? "Adding..." : "Add"}
+            {loading
+              ? walletAction === "credit"
+                ? "Adding..."
+                : "Returning..."
+              : walletAction === "credit"
+                ? "Add"
+                : "Return"}
           </button>
         </div>
       </div>
@@ -207,27 +225,48 @@ const GetAllCustomer = () => {
   const [deleteId, setDeleteId] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
-  const [walletCustomerId, setWalletCustomerId] = useState(null);
+  // const [walletCustomerId, setWalletCustomerId] = useState(null);
   const [walletLoading, setWalletLoading] = useState(false);
 
   const navigate = useNavigate();
+  const [walletCustomer, setWalletCustomer] = useState(null);
+  const [walletAction, setWalletAction] = useState("credit");
 
-  const handleAddMoney = (id) => {
-    setWalletCustomerId(id);
+  const handleWallet = (customer, action) => {
+    setWalletCustomer(customer);
+    setWalletAction(action); // "credit" or "debit"
   };
 
+  // const handleAddMoney = (id) => {
+  //   setWalletCustomerId(id);
+  // };
+
   const handleWalletSubmit = async (amount) => {
+    let newBalance;
+
+    if (walletAction === "credit") {
+      newBalance = Number((walletCustomer.walletBalance + amount).toFixed(2));
+    } else {
+      if (amount > walletCustomer.walletBalance) {
+        toast.error("Amount exceeds wallet balance");
+        return;
+      }
+
+      newBalance = Number((walletCustomer.walletBalance - amount).toFixed(2));
+    }
+
     try {
       setWalletLoading(true);
 
       const res = await authFetch(
-        `${BACKEND_URL}/customer/customer/${walletCustomerId}/wallet`,
+        `${BACKEND_URL}/customer/customer/${walletCustomer.id}/wallet`,
         {
           method: "PATCH",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+          },
           body: JSON.stringify({
-            amount,
-            type: "credit",
+            walletBalance: newBalance,
           }),
         },
       );
@@ -238,23 +277,26 @@ const GetAllCustomer = () => {
 
       setAllCustomer((prev) =>
         prev.map((c) =>
-          c.id === walletCustomerId
+          c.id === walletCustomer.id
             ? { ...c, walletBalance: data.walletBalance }
             : c,
         ),
       );
 
-      toast.success("Money added successfully"); // ✅ toast
+      toast.success(
+        walletAction === "credit"
+          ? "Money added successfully"
+          : "Money returned successfully",
+      );
 
-      setWalletCustomerId(null);
+      setWalletCustomer(null);
     } catch (err) {
       console.error(err);
-      toast.error("Failed to update wallet"); // ✅ toast
+      toast.error("Failed to update wallet");
     } finally {
       setWalletLoading(false);
     }
   };
-
   /* ---------------- Fetch ---------------- */
 
   useEffect(() => {
@@ -412,7 +454,7 @@ const GetAllCustomer = () => {
             <CustomerCard
               key={c.id}
               customer={c}
-              handleAddMoney={handleAddMoney}
+              handleWallet={handleWallet}
               walletLoading={walletLoading}
               isEditing={editingId === c.id}
               editData={editData}
@@ -433,10 +475,11 @@ const GetAllCustomer = () => {
         deleting={deleting}
       />
       <WalletModal
-        open={Boolean(walletCustomerId)}
-        onClose={() => setWalletCustomerId(null)}
+        open={Boolean(walletCustomer)}
+        onClose={() => setWalletCustomer(null)}
         onSubmit={handleWalletSubmit}
         loading={walletLoading}
+        walletAction={walletAction}
       />
     </div>
   );
