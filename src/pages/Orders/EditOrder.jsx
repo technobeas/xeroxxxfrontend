@@ -171,6 +171,10 @@ export default function EditOrder() {
   }, [order?.items, order?.gstApplied, isHydrated]);
 
   const saveChanges = async () => {
+    if (Number(order.paidAmount) > Number(order.totalAmount)) {
+      toast.error("Paid amount cannot be greater than Total Amount");
+      return;
+    }
     setLoading(true);
     try {
       const payload = {
@@ -181,6 +185,7 @@ export default function EditOrder() {
         })),
         gstApplied: order.gstApplied,
         totalAmount: order.totalAmount, // ✅ optional manual override
+        paidAmount: order.paidAmount,
         extraCharges: order.extraCharges || 0,
         discount: order.discount || 0,
       };
@@ -342,6 +347,21 @@ export default function EditOrder() {
               Discount: −₹{order.discount.toFixed(2)}
             </p>
           )}
+
+          <label>
+            Paid Amount
+            <input
+              type="number"
+              value={order.paidAmount}
+              min="0"
+              onChange={(e) =>
+                setOrder((prev) => ({
+                  ...prev,
+                  paidAmount: Number(e.target.value),
+                }))
+              }
+            />
+          </label>
 
           <label>
             Total Amount
